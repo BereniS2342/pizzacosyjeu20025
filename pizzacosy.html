@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Le Bistrot de la Gare – Roue de la Fortune (https://pizzacosy.com/jeu-avis-2025-a1b2c3.html)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(to bottom, #fdfbf8, #f5f2ec);
+      color: #2c3e50;
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 0 20px 60px;
+      text-align: center;
+    }
+
+    header img {
+      width: 120px;
+      margin: 20px auto 10px;
+      display: block;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      color: #3b3b3b;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 14px 36px;
+      font-size: 18px;
+      background: linear-gradient(145deg, #d4af37, #e6c869);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 6px 14px rgba(212, 175, 55, 0.5);
+      transition: all 0.3s;
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(145deg, #e6c869, #d4af37);
+      box-shadow: 0 8px 18px rgba(212, 175, 55, 0.7);
+    }
+
+    button:disabled {
+      background-color: #999;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #wheel-container {
+      margin-top: 35px;
+      position: relative;
+      width: 400px;
+      height: 400px;
+      display: none;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #pointer {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%) rotate(180deg);
+      width: 0;
+      height: 0;
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-top: 40px solid #c0392b;
+      z-index: 10;
+    }
+
+    canvas {
+      border-radius: 50%;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 22px;
+      font-weight: 600;
+      color: #27ae60;
+      min-height: 50px;
+    }
+
+    #googleReviewBtn {
+      margin-top: 20px;
+      padding: 14px 36px;
+      font-size: 18px;
+      background: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 6px 14px rgba(66, 133, 244, 0.5);
+      transition: all 0.3s;
+    }
+
+    #googleReviewBtn:hover {
+      background: #357ae8;
+      box-shadow: 0 8px 18px rgba(53, 122, 232, 0.7);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="2fda60d1a0b3 (1).png" alt="Logo Le Bistrot de la Gare" />
+</header>
+
+<h1>Le Bistrot de la Gare</h1>
+
+<button id="googleReviewBtn" onclick="window.open('https://www.google.com/maps/place/Bistro+La+Gare/@45.245541,5.8299948,17z/data=!4m8!3m7!1s0x478a592f442bc195:0x86073ecd70c29707!8m2!3d45.245541!4d5.8299948!9m1!1b1!16s%2Fg%2F11gj4jx9tn?hl=fr&entry=ttu&g_ep=EgoyMDI1MDUyOC4wIKXMDSoASAFQAw%3D%3D', '_blank')">Mettre un avis sur Google</button>
+
+<button id="submitBtn" disabled>J'ai bien mis un avis, je tourne la roue</button>
+
+<div id="wheel-container">
+  <div id="pointer"></div>
+  <canvas id="wheel" width="400" height="400"></canvas>
+</div>
+
+<div id="result"></div>
+
+<script>
+  const prizes = [
+    "☕ Café offert",
+    "🍰 Dessert gratuit",
+    "🍷 Verre de vin offert",
+    "😞 Pas de chance",
+    "🍽️ 10% sur l'addition",
+    "🥂 Apéritif maison",
+    "🍀 Chance prochaine fois",
+    "🍛 Plat du jour gratuit"
+  ];
+
+  const submitBtn = document.getElementById('submitBtn');
+  const googleReviewBtn = document.getElementById('googleReviewBtn');
+  const wheelContainer = document.getElementById('wheel-container');
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const resultDiv = document.getElementById('result');
+
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const radius = 190;
+  const arc = (2 * Math.PI) / prizes.length;
+  const colors = ['#d35400','#f39c12','#2ecc71','#3498db','#9b59b6','#e67e22','#1abc9c','#e74c3c'];
+
+  let startAngle = 0;
+  let isSpinning = false;
+  let hasSpun = false;
+
+  googleReviewBtn.addEventListener('click', () => {
+    if (!hasSpun) {
+      submitBtn.disabled = false;
+    }
+  });
+
+  function drawWrappedText(text, x, y, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    const lines = [];
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && i > 0) {
+        lines.push(line.trim());
+        line = words[i] + ' ';
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line.trim());
+
+    const totalHeight = lines.length * lineHeight;
+    let startY = y - totalHeight / 2 + lineHeight / 2;
+
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], x, startY + i * lineHeight);
+    }
+  }
+
+  function drawWheel() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < prizes.length; i++) {
+      const angle = startAngle + i * arc;
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius, angle, angle + arc);
+      ctx.lineTo(centerX, centerY);
+      ctx.fill();
+
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 14px Montserrat, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.translate(
+        centerX + Math.cos(angle + arc / 2) * 120,
+        centerY + Math.sin(angle + arc / 2) * 120
+      );
+      ctx.rotate(angle + arc / 2 + Math.PI / 2);
+      drawWrappedText(prizes[i], 0, 0, 100, 18);
+      ctx.restore();
+    }
+
+    // Centre
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 60, 0, 2 * Math.PI);
+    ctx.fillStyle = '#333';
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px Montserrat, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Tourner', centerX, centerY + 6);
+  }
+
+  function easeOut(t, b, c, d) {
+    const ts = (t /= d) * t;
+    const tc = ts * t;
+    return b + c * (tc + -3 * ts + 3 * t);
+  }
+
+  function spinWheel() {
+    if (isSpinning || hasSpun) return;
+    isSpinning = true;
+    resultDiv.textContent = '';
+    submitBtn.disabled = true;
+    googleReviewBtn.disabled = true;
+
+    wheelContainer.style.display = 'block';
+
+    const spinTimeTotal = Math.random() * 3000 + 4000;
+    let spinTime = 0;
+    const spinAngleStart = Math.random() * 10 + 15;
+
+    function rotate() {
+      spinTime += 30;
+      if (spinTime >= spinTimeTotal) {
+        stopRotateWheel();
+        return;
+      }
+      const spinAngle = easeOut(spinTime, spinAngleStart, -spinAngleStart, spinTimeTotal);
+      startAngle += (spinAngle * Math.PI / 180);
+      drawWheel();
+      setTimeout(rotate, 30);
+    }
+
+    rotate();
+  }
+
+  function stopRotateWheel() {
+    isSpinning = false;
+    hasSpun = true;
+
+    let degrees = (startAngle * 180) / Math.PI;
+    degrees = ((degrees % 360) + 360) % 360;
+
+    const pointerAngle = 270;
+    const segmentAngleDeg = 360 / prizes.length;
+
+    let relativeAngle = (pointerAngle - degrees + 360) % 360;
+
+    let index = Math.floor(relativeAngle / segmentAngleDeg);
+
+    resultDiv.textContent = "🎉 Vous avez gagné : " + prizes[index];
+  }
+
+  submitBtn.addEventListener('click', () => {
+    spinWheel();
+  });
+
+  drawWheel();
+</script>
+
+</body>
+</html>
